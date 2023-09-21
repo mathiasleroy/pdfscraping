@@ -116,14 +116,16 @@ pdftable_to_dataframe = function(files, keeppages, start, end, setcols=c(), spli
 #                                                            ,'% change in test positivity'
 #                                                            ,'Test/Case')) %>%  ## tbl 1 page 4 --> ok
 #   mutate(
-#     `Test/Case` = as.numeric(`Test/Case` ),                                                    ## e.g. as numeric
-#     `New Tests (last 7 Days)` = as.numeric(gsub('\\s', '', `New Tests (last 7 Days)` )),       ## e.g. thousands as numeric
-#     `New Tests (last 8-14 Days)` = as.numeric(gsub('\\s', '', `New Tests (last 8-14 Days)` )), 
-    
-#     `% change in new tests` = as.numeric(gsub('%', '', `% change in new tests` )) / 100,       ## e.g. percent as numeric
-#     `% of new tests` = as.numeric(gsub('%', '', `% of new tests` )) / 100,
-#     `Test Positivity` = as.numeric(gsub('%', '', `Test Positivity` )) / 100,
-#     `% change in test positivity` = as.numeric(gsub('%', '', `% change in test positivity` )) / 100
+#     across(c(`New Tests (last 7 Days)`,
+#                   `New Tests (last 8-14 Days)`,
+#                   `Test/100K/Week`,
+#                   `Test/Case`),
+#                 ~ as.numeric(gsub('\\s','',.x))),
+#     across(c(`% change in new tests`,
+#                   `% of new tests`,
+#                   `Test Positivity`,
+#                   `% change in test positivity`),
+#                 ~ as.numeric(gsub('%','',.x,fixed=T)))
 #     )
 
 # pdftable_to_dataframe(c('../Examples/PDF-1.pdf'), 4, 26, 48) ## tbl 2 page 4 --> ok
