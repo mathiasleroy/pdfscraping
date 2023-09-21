@@ -82,6 +82,94 @@ We evaluated the following tools, via R and python:
 
 ## Text scraping
 
+This approach extracts the texts from the pdf (using the package pdftools) and tries to parse the texts into tables. To separate rows, we are using line returns “\n”. To separate columns, we use a regex. We found that in most cases 2 or more spaces was the best approach ("\\s{2,}"), however we found that this doesn’t work well in some cases where tables had varying amounts of spaces delimiting columns on different rows.
+
+The advantages of this approach are speed and simplicity. This could be useful for cases where hundreds of pdf’s need to be parsed rapidly.
+It can also be used when tabulizer is not available (java issues).
+
+
+``` 
+pacman::p_load(dplyr, pdftools, stringr)
+
+pdftable_to_dataframe = function(files, keeppages, start, end, setcols=c(), splitcolsregex="\\s{2,}", debug=FALSE){
+  if(debug) print(paste('going to extract' ,length(files), "file(s)"))
+ 
+  for(file_i in 1:length(files)){
+    file = files[file_i]
+    # print(paste0('file #', file_i, ': ', file))
+   
+    pages = pdf_text(file)                      ## EXTRACT ALL TEXT INTO PAGES
+    # print(paste('pages:',length(pages)))
+    pages = pages[keeppages]                    ## TRIM SELECTED PAGES
+    alltext = paste(pages, collapse = '\n')     ## MERGE ALL PAGES
+    # print(alltext)
+
+
+    lines = alltext %>% strsplit(split="\n")    ## SPLIT INTO LINES
+    lines = lines[[1]]                          ## UNLIST
+    lines = lines[start:end]                    ## TRIM SELECTED LINES
+    if(debug==2) print(lines)
+   
+    splittedlines = lines%>%strsplit(split=splitcolsregex)          ## SPLIT VALUES INTO COLS (default: 2 or more spaces)
+    splittedlines = splittedlines[lapply(splittedlines,length)>0]   ## REMOVE E:PTY LINES
+    # if(debug) print(splittedlines)
+   
+    ### FIND MAX NUMBER OF COLS -----
+    ncols = 0
+    for (line_j in splittedlines){
+      # print(length(line_j))
+      if(ncols < length(line_j)) ncols = length(line_j)
+    }
+   
+   
+    if(file_i==1) df = data.frame()               ## INIT EMPTY DF
+    for (line_i in splittedlines){
+      if(debug) print(paste(length(line_i), 'cols: ', paste(line_i, collapse = " | ")))
+      if(length(line_i) == ncols ) {              ## KEEP ONLY LINES WITH ALL VALUES (alternative would be to complete vector of values to make sure the length is the same)
+        df_i = data.frame(t(line_i))              ## CONVERT TO SINGLE LINE DF
+        df = rbind(df, df_i)                      ## APPEND TO MAIN DF
+      }
+    }
+  }
+ 
+  if(debug) print(paste('keeping only row with', ncols, 'columns'))
+ 
+  if(length(setcols) > 0) names(df) = setcols     ## SET COL NAMES
+ 
+  return(df)
+}
+```
+
+
+``` 
+### TABLE 1 PDF 1 -----
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+pdftable_to_dataframe(c('Examples/PDF-1.pdf'), 4, 5, 25, c('Division'
+                                                           ,'New Tests (last 7 Days)'
+                                                           ,'New Tests (last 8-14 Days)'
+                                                           ,'Test/100K/Week'
+                                                           ,'% change in new tests'
+                                                           ,'% of new tests'
+                                                           ,'Test Positivity'
+                                                           ,'% change in test positivity'
+                                                           ,'Test/Case')) %>%  
+  mutate(
+    `Test/Case` = as.numeric(`Test/Case` ),                                                    ## e.g. as numeric
+    `New Tests (last 7 Days)` = as.numeric(gsub('\\s', '', `New Tests (last 7 Days)` )),       ## e.g. thousands as numeric
+    `New Tests (last 8-14 Days)` = as.numeric(gsub('\\s', '', `New Tests (last 8-14 Days)` )),
+   
+    `% change in new tests` = as.numeric(gsub('%', '', `% change in new tests` )) / 100,       ## e.g. percent as numeric
+    `% of new tests` = as.numeric(gsub('%', '', `% of new tests` )) / 100,
+    `Test Positivity` = as.numeric(gsub('%', '', `Test Positivity` )) / 100,
+    `% change in test positivity` = as.numeric(gsub('%', '', `% change in test positivity` )) / 100
+    )
+```
+
+
+**Result:**
+
+
+
 ## OCR
 
 # LLMs for PDF Scraping
