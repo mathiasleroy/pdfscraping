@@ -1,0 +1,78 @@
+---
+title: "PDF Scraping - Hackathon"
+author: "PDF scraping group"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    self-contained: true
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    number_sections: true
+    theme: lumen
+---
+
+```{r, include=FALSE, context = "setup"}
+
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  echo = FALSE,
+  warning = FALSE,
+  message = FALSE,
+  cache = TRUE,
+  context = "render"
+)
+
+
+```
+
+
+
+
+# Background and Rationale
+
+In the field of epidemiology, the rapid and accurate extraction of data from various sources, including situation reports on disease outbreaks, is critical for monitoring, understanding, and responding to public health crises. Situation reports are often released by health organizations, governmental bodies, and international agencies to provide up-to-date information on the progression and impact of outbreaks. However, these reports are frequently published in PDF format, which poses significant challenges for data extraction. PDF scraping solutions can empower modelers, epidemiologists and public health professionals to efficiently extract, analyze, and act on crucial epidemiological data, ultimately contributing to better preparedness, response, and control of infectious disease outbreaks.
+
+## Objective
+
+As a project in the 2023 Early stage outbreaks analytics hackathon, at the WHO Berlin Hub, we set out to document and test PDF scraping tools. The objective of this work is to explore and highlight the suitability, advantages and limitations of existing PDF scraping solutions. 
+
+
+## Approach
+
+Our approach comprised the evaluation of selected R and Python packages, text and image recognition methods, and the utilization of Large Language Model (LLM) capabilities for extraction of data from PDF with varying degrees of complexity.
+
+
+# Example PDFs
+
+We attempted to perform scraping on three target tables, which had varying degrees of complexity. For the purposes of this document, we focus on scraping of a relatively simple, text based table. Further code used to scrape other tables can be seen in our code repository [link to repo].
+
+
+
+# Summary of evaluated tools
+
+We evaluated the following tools, via R and python:
+
+
+| Approach               | Ease of installation | Ease of use | Value accuracy | Table structure complexity | Image parsing |
+|------------------------|----------------------|-------------|----------------|----------------------------|---------------|
+| Tabulizer (Tabula API) | Medium               | High        | High           | Medium                     | No            |
+| Text parsing           | High                 | Medium      | High           | Low                        | No            |
+| OCR                    | Medium*              | Medium      | Low            | High                       | Yes           |
+
+
+
+
+## Tabulizer
+
+## Text scraping
+
+## OCR
+
+# LLMs for PDF Scraping
+
+
+# Conclusions
+
+
