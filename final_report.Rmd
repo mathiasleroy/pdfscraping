@@ -17,7 +17,7 @@ output:
 
 knitr::opts_chunk$set(
   collapse = TRUE,
-  echo = FALSE,
+  echo = TRUE,
   warning = FALSE,
   message = FALSE,
   cache = TRUE,
@@ -88,7 +88,7 @@ The advantages of this approach are speed and simplicity. This could be useful f
 It can also be used when tabulizer is not available (java issues).
 
 
-``` 
+```{r}
 pacman::p_load(dplyr, pdftools, stringr)
 
 pdftable_to_dataframe = function(files, keeppages, start, end, setcols=c(), splitcolsregex="\\s{2,}", debug=FALSE){
@@ -141,10 +141,9 @@ pdftable_to_dataframe = function(files, keeppages, start, end, setcols=c(), spli
 ```
 
 
-``` 
+```{r, echo = TRUE}
 ### TABLE 1 PDF 1 -----
-setwd(dirname(rstudioapi::getSourceEditorContext()$path))
-pdftable_to_dataframe(c('Examples/PDF-1.pdf'), 4, 5, 25, c('Division'
+pdf_table <- pdftable_to_dataframe(c('Examples/PDF-1.pdf'), 4, 5, 25, c('Division'
                                                            ,'New Tests (last 7 Days)'
                                                            ,'New Tests (last 8-14 Days)'
                                                            ,'Test/100K/Week'
@@ -162,7 +161,9 @@ pdftable_to_dataframe(c('Examples/PDF-1.pdf'), 4, 5, 25, c('Division'
     `% of new tests` = as.numeric(gsub('%', '', `% of new tests` )) / 100,
     `Test Positivity` = as.numeric(gsub('%', '', `Test Positivity` )) / 100,
     `% change in test positivity` = as.numeric(gsub('%', '', `% change in test positivity` )) / 100
-    )
+    ) 
+
+knitr::kable(head(pdf_table))
 ```
 
 
