@@ -46,8 +46,22 @@ Our approach comprised the evaluation of selected R and Python packages, text an
 
 # Example PDFs
 
-We attempted to perform scraping on three target tables, which had varying degrees of complexity. For the purposes of this document, we focus on scraping of a relatively simple, text based table. Further code used to scrape other tables can be seen in our code repository [link to repo].
+We attempted to perform scraping on three target PDFs, which had varying degrees of complexity. For the purposes of this document, we focus on scraping of a relatively simple, text based table. Further code used to scrape other tables can be seen in our code repository [link to repo].
 
+
+![Target scraping table](img/table1.png)
+
+This table is relatively easy to scrape for several reasons:
+
+1. It has a simple layout with no merged cells
+
+2. It is embedded as text in the PDF, rather than as an image
+
+3. It's written in English
+
+4. It's fully contained on a single page of the PDF
+
+Changes to these or other factors can make PDF scraping significantly more challenging. 
 
 
 # Summary of evaluated tools
