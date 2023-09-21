@@ -80,11 +80,11 @@ We evaluated the following tools, via R and python:
 
 ## Tabulizer
 
-## Text scraping
+## Text Parsing
 
-This approach extracts the texts from the pdf (using the package pdftools) and tries to parse the texts into tables. To separate rows, we are using line returns “\n”. To separate columns, we use a regex. We found that in most cases 2 or more spaces was the best approach ("\\s{2,}"), however we found that this doesn’t work well in some cases where tables had varying amounts of spaces delimiting columns on different rows.
+This approach extracts the texts from the pdf (using the package pdftools) and tries to parse the texts into tables. To separate rows, we are using line returns “\n”. To separate columns, we use a changeable regex. We found that in most cases, 2 or more spaces was the best approach ("\\s{2,}"), however we found that this doesn’t work well in some cases where tables had missing values replaced by spaces. In that case an upper bound limit can be used (e.g. "\\s{2,15}"), however we found that this was not always working because different rows could use different amount of spaces to delimit columns.
 
-The advantages of this approach are speed and simplicity. This could be useful for cases where hundreds of pdf’s need to be parsed rapidly.
+When it works, the advantages of this approach are speed and simplicity. This is useful for cases where hundreds of pdf’s need to be parsed rapidly.
 It can also be used when tabulizer is not available (java issues).
 
 
