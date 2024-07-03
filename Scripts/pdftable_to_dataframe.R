@@ -1,4 +1,7 @@
 pacman::p_load(dplyr, pdftools, stringr)
+setwd(dirname(rstudioapi::getSourceEditorContext()$path))
+
+
 
 #' Convert PDF table to dataframe
 #'
@@ -17,6 +20,16 @@ pacman::p_load(dplyr, pdftools, stringr)
 #' @return A dataframe containing the extracted table data
 #'
 #' @details
+#' Issues:
+#' \enumerate{
+#'   \item Doesn't work on table rows that have line return in cells
+#'   \item All cells need a value, if a row has an empty cell, that row will be discarded
+#'   \item The pages dont always correspong to what is shown in a pdf reader --> suggest to set debug to TRUE and try diffferent values
+#'   \item it can be hard to guess at first what to set as start and end lines -> suggest to try many different values
+#'   \item Only extracts lines that have a value in each column -> summary totals are sometimes not kept + some tables have large blanks which are undetectable
+#'         (changing regex can solve in some cases).
+#' }
+#' 
 #' Advantages:
 #' \itemize{
 #'   \item Fast
@@ -25,14 +38,6 @@ pacman::p_load(dplyr, pdftools, stringr)
 #'   \item Built-in loop over multiple files -> returns 1 dataframe for all the PDFs
 #'   \item Treating all as text; doesn't parse numbers (can be done by user after the extract)
 #'   \item Outputted values are reliable
-#' }
-#'
-#' Issues:
-#' \enumerate{
-#'   \item It's a bit hard to guess from scratch what to set as start and end lines. Could make a helper function to search a text and return the line of occurrence,
-#'         but since it runs super fast (~instant) it's easy to try 1-990 and refine afterwards.
-#'   \item Only extracts lines that have a value in each column -> summary totals are sometimes not kept + some tables have large blanks which are undetectable
-#'         (changing regex can solve in some cases).
 #' }
 #'
 #' @import dplyr pdftools stringr
@@ -82,6 +87,10 @@ pacman::p_load(dplyr, pdftools, stringr)
 #'
 #' # Example with issues
 #' pdftable_to_dataframe(c("../Examples/20230919_mpox__external-sitrep-28.pdf"), c(17, 18, 19), 22, 150, debug = 2, splitcolsregex = "\\s{2,25}") # table page 17 is not working immediatly, also not with different regexes because different pages have different number of spaces for col delimiters --> could work if we do fct call per page
+#' 
+#' df <- pdftable_to_dataframe(c("../Examples/2015-Second-edition-WHO-style-guide.pdf"), 63:69, 1, 400, setcols = c#' ("Short name", "Full name", "Adjective/People", "Capital city"), debug = FALSE) ## doesnt work on rows with linebreaks
+#' df[2, ] ## 'Islamic Republic of' should be 'Islamic Republic of Afghanistan'
+#'
 #' }
 #'
 #' @export
@@ -94,22 +103,25 @@ pdftable_to_dataframe <- function(files, keeppages, start, end, setcols = c(), s
     stop("'start' must be less than 'end'.")
   }
 
-  if (debug) print(paste("going to extract", length(files), "file(s)"))
+  if (debug) message("\n", length(files), ifelse(length(files) > 1, " files", " file"), " to process")
 
-  for (file_i in 1:length(files)) {
-    file <- files[file_i]
-    # print(paste0('file #', file_i, ': ', file))
+  for (ii in 1:length(files)) {
+    file_ii <- files[ii]
+    if (debug) message("-", ii, ": ", file_ii)
 
-    pages <- pdf_text(file) ## EXTRACT ALL TEXT INTO PAGES
-    # print(paste('pages:',length(pages)))
+    pages <- pdf_text(file_ii) ## EXTRACT ALL TEXT INTO PAGES
+    if (debug) message(length(pages), ifelse(length(pages) > 1, " pages", " page"), " in total")
     pages <- pages[keeppages] ## TRIM SELECTED PAGES
+    if (debug) message(length(pages), ifelse(length(pages) > 1, " pages", " page"), " kept")
     alltext <- paste(pages, collapse = "\n") ## MERGE ALL PAGES
     # print(alltext)
 
     lines <- alltext %>% strsplit(split = "\n") ## SPLIT INTO LINES
     lines <- lines[[1]] ## UNLIST
     lines <- lines[start:end] ## TRIM SELECTED LINES
-    if (debug == 2) print(lines)
+    # if (debug == 2) print(lines)
+
+
 
     splittedlines <- lines %>% strsplit(split = splitcolsregex) ## SPLIT VALUES INTO COLS (default: 2 or more spaces)
     splittedlines <- splittedlines[lapply(splittedlines, length) > 0] ## REMOVE E:PTY LINES
@@ -123,9 +135,9 @@ pdftable_to_dataframe <- function(files, keeppages, start, end, setcols = c(), s
     }
 
 
-    if (file_i == 1) df <- data.frame() ## INIT EMPTY DF
+    if (ii == 1) df <- data.frame() ## INIT EMPTY DF
     for (line_i in splittedlines) {
-      if (debug) print(paste(length(line_i), "cols: ", paste(line_i, collapse = " | ")))
+      if (debug == 2) message(paste('-', length(line_i), "cols: ", paste(line_i, collapse = " | ")))
       if (length(line_i) == ncols) { ## KEEP ONLY LINES WITH ALL VALUES (alternative would be to complete vector of values to make sure the length is the same)
         df_i <- data.frame(t(line_i)) ## CONVERT TO SINGLE LINE DF
         df <- rbind(df, df_i) ## APPEND TO MAIN DF
@@ -133,22 +145,14 @@ pdftable_to_dataframe <- function(files, keeppages, start, end, setcols = c(), s
     }
   }
 
-  if (debug) print(paste("keeping only row with", ncols, "columns"))
+  if (debug) message("keeping only rows with ", ncols, " values")
 
-  if (length(setcols) > 0) names(df) <- setcols ## SET COL NAMES
+  if (length(setcols) == ncol(df)) names(df) <- setcols ## SET COL NAMES
+
+  if (debug) df %>% glimpse()
 
   return(df)
 }
-
-
-
-
-
-
-
-
-
-
 
 
 
